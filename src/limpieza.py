@@ -77,9 +77,8 @@ def leer_cvc(ruta: Path) -> pd.DataFrame:
                 r = next(csv.reader([r[0]]))
             filas.append(r)
     cab, datos = filas[0], filas[1:]
-    datos = [r + [""] * (len(cab) - len(r)) for r in datos]
-    return pd.DataFrame(datos, columns=cab).replace("", np.nan)
-
+    datos = [[(c if c != "" else None) for c in r] + [None] * (len(cab) - len(r)) for r in datos]
+    return pd.DataFrame(datos, columns=cab, dtype=object)
 
 # ---------------------------------------------------------------------------
 # 3. Conversión de una celda de texto a número + bandera
@@ -127,13 +126,13 @@ def depurar(df: pd.DataFrame):
     df["estacion"] = est.replace(ESTACIONES)
 
     # Fechas: años mal digitados (1193 -> 1993, 1194 -> 1994, 1290 -> 1990)
-    fechas = pd.to_datetime(df["fecha_raw"], format="%Y %b %d %I:%M:%S %p", errors="coerce")
-    año = fechas.dt.year
+    partes = df["fecha_raw"].str.strip().str.split(r"\s+", expand=True)
+    año = pd.to_numeric(partes[0], errors="coerce")
     corr = {1193: 1993, 1194: 1994, 1290: 1990}
     for i in df.index[año.isin(corr)]:
-        log.append((i, "fecha", df.at[i, "fecha_raw"], f"año -> {corr[año[i]]}", "año fuera de rango (digitación)"))
-    fechas = pd.to_datetime({
-        "year": año.replace(corr), "month": fechas.dt.month, "day": fechas.dt.day})
+        log.append((i, "fecha", df.at[i, "fecha_raw"], f"año -> {corr[int(año[i])]}", "año fuera de rango (digitación)"))
+    año = año.replace(corr).astype("Int64").astype(str)
+    fechas = pd.to_datetime(año + " " + partes[1] + " " + partes[2], format="%Y %b %d", errors="coerce")
     df["fecha"] = fechas
     df["anio"] = fechas.dt.year
     df["mes"] = fechas.dt.month
