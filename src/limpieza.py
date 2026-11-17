@@ -54,6 +54,9 @@ RANGOS = {
     "ph": (4.0, 10.0), "temperatura": (15.0, 35.0), "od": (0.0, 15.0),
     "conductividad": (10.0, 2000.0), "sst": (0.0, 10000.0), "dqo": (0.0, 1000.0),
     "dbo": (0.0, 500.0), "turbiedad": (0.0, 5000.0),
+    "nitratos": (0.0, 50.0), "nitritos": (0.0, 5.0), "nitrogeno_amoniacal": (0.0, 50.0),
+    "cloruros": (0.0, 500.0), "sulfatos": (0.0, 500.0), "alcalinidad": (0.0, 500.0),
+    "coliformes_fecales": (0.0, 1e9), "coliformes_totales": (0.0, 1e10),
 }
 
 # Corrección de nombres de estación (espacios dobles y variantes).
@@ -79,6 +82,7 @@ def leer_cvc(ruta: Path) -> pd.DataFrame:
     cab, datos = filas[0], filas[1:]
     datos = [[(c if c != "" else None) for c in r] + [None] * (len(cab) - len(r)) for r in datos]
     return pd.DataFrame(datos, columns=cab, dtype=object)
+
 
 # ---------------------------------------------------------------------------
 # 3. Conversión de una celda de texto a número + bandera
@@ -126,6 +130,8 @@ def depurar(df: pd.DataFrame):
     df["estacion"] = est.replace(ESTACIONES)
 
     # Fechas: años mal digitados (1193 -> 1993, 1194 -> 1994, 1290 -> 1990)
+    # Se separa el texto "1998 Dec 19 12:00:00 AM" en partes ANTES de convertir a fecha,
+    # porque algunas versiones de pandas no aceptan años como 1193.
     partes = df["fecha_raw"].str.strip().str.split(r"\s+", expand=True)
     año = pd.to_numeric(partes[0], errors="coerce")
     corr = {1193: 1993, 1194: 1994, 1290: 1990}
@@ -133,6 +139,8 @@ def depurar(df: pd.DataFrame):
         log.append((i, "fecha", df.at[i, "fecha_raw"], f"año -> {corr[int(año[i])]}", "año fuera de rango (digitación)"))
     año = año.replace(corr).astype("Int64").astype(str)
     fechas = pd.to_datetime(año + " " + partes[1] + " " + partes[2], format="%Y %b %d", errors="coerce")
+    for i in df.index[fechas.isna()]:
+        log.append((i, "fecha", df.at[i, "fecha_raw"], "-> nulo", "fecha no interpretable"))
     df["fecha"] = fechas
     df["anio"] = fechas.dt.year
     df["mes"] = fechas.dt.month
@@ -152,6 +160,28 @@ def depurar(df: pd.DataFrame):
         nums[bajo_ld] = nums[bajo_ld] * FACTOR_LD
         banderas[c] = flags.replace({"nulo": "", "no_convertible": ""})
         df[c] = nums
+
+    # Correcciones específicas de la fuente (VERIFICAR CON LA CVC)
+    # (a) 2022: los coliformes quedaron corridos a las columnas de nitritos y nitratos.
+    #     Evidencia: valores típicos de tabla NMP (2,3 / 4,3 / 9,3 x 10^n) y en el 100 % de
+    #     los casos "nitritos" >= "nitratos", igual que totales >= fecales. Las columnas de
+    #     metales y nitrógeno de esas filas también están corridas: se anulan.
+    filas_2022 = df.index[(df["anio"] == 2022) & df["coliformes_totales"].isna() & (df["nitritos"] > 50)]
+    corridas = ["hierro_total", "manganeso_total", "sodio_total", "cobre_total", "zinc_total",
+                "nitrogeno_total", "nitrogeno_amoniacal"]
+    for i in filas_2022:
+        df.at[i, "coliformes_totales"], df.at[i, "coliformes_fecales"] = df.at[i, "nitritos"], df.at[i, "nitratos"]
+        log.append((i, "nitritos/nitratos", "", "-> coliformes totales/fecales",
+                    "columnas corridas en 2022 (verificar con la CVC)"))
+        for c in corridas + ["nitritos", "nitratos"]:
+            if c in df.columns:
+                df.at[i, c] = np.nan
+        banderas.loc[i, [c for c in corridas + ["nitritos", "nitratos"] if c in banderas.columns]] = ""
+    # (b) 2001-2005: nitritos reportados en µg/L (mediana 24 vs. 0,03 mg/L en los demás años).
+    filas_ug = df.index[df["anio"].between(2001, 2005) & df["nitritos"].notna()]
+    df.loc[filas_ug, "nitritos"] = df.loc[filas_ug, "nitritos"] / 1000
+    for i in filas_ug:
+        log.append((i, "nitritos", "", "÷ 1000", "unidades µg/L en 2001-2005 (verificar con la CVC)"))
 
     # Rangos plausibles
     for c, (lo, hi) in RANGOS.items():
