@@ -1,2 +1,3 @@
 bd/calidad_agua.db
 datos/procesados/
+modelos/*.joblib
