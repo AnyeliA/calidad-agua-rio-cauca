@@ -1,0 +1,15 @@
+variable,importancia,desviacion
+turbiedad,0.0923,0.0129
+dureza_total,0.0685,0.0167
+alcalinidad,0.0503,0.0145
+dbo,0.0357,0.0126
+nitratos,0.0235,0.014
+nitritos,0.0223,0.0084
+cloruros,0.0213,0.0089
+color,0.0205,0.0089
+temperatura,0.0187,0.0115
+sulfatos,0.016,0.0096
+fosforo_total,0.0136,0.0068
+nitrogeno_amoniacal,0.0047,0.0069
+coliformes_totales,0.0045,0.0042
+coliformes_fecales,-0.0004,0.0062
