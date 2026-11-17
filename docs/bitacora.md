@@ -16,3 +16,10 @@
 - Decisión: excluir de Git la BD y los modelos .joblib porque se regeneran con los scripts.
 - Limitación detectada: la clase "Malo" (30 casos de prueba) tiene precisión baja (0,31).
 - Siguiente paso: prototipo Streamlit.
+
+- Defecto encontrado: en 2022 los coliformes estaban en las columnas de nitritos/nitratos (57 registros)
+  y en 2001-2005 los nitritos venían en µg/L (273 registros). Se corrigió en limpieza.py; pendiente confirmar con la CVC.
+- Resultado: con datos corregidos el modelo activo es Random Forest, F1-macro 0,587 (antes regresión logística 0,600
+  con datos erróneos). Control con variables ICA: 0,833. Modelo base: 0,199.
+- Variables más importantes: alcalinidad, turbiedad, fósforo total, sulfatos.
+- Decisión: fijar versiones de librerías en requirements.txt para reproducibilidad.
