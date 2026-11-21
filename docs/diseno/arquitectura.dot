@@ -1,0 +1,38 @@
+digraph G {
+  graph [rankdir=TB, fontname="Liberation Sans", fontsize=13, nodesep=0.45, ranksep=0.6, pad=0.3, bgcolor="white", compound=true];
+  node  [shape=box, style="rounded,filled", fillcolor="white", color="#555555", fontname="Liberation Sans", fontsize=11, margin="0.15,0.08"];
+  edge  [color="#555555", fontname="Liberation Sans", fontsize=9, arrowsize=0.7];
+
+  subgraph cluster_datos { label="Capa de datos (scripts Python)"; style="rounded,dashed"; color="#888888"; fontsize=12;
+    csv [label="Archivo CVC\n(CSV, 2.368 muestreos)", shape=note, fillcolor="#f2f2f2"];
+    c1 [label="C1 Depuración\nlimpieza.py"];
+    c3 [label="C3 Cálculo del ICA\nica.py"];
+    carga [label="Carga\ncargar_bd.py"];
+    {rank=same; csv; c1; c3; carga}
+  }
+  bd [label="C2 Base de datos SQLite\nestacion · muestreo · clasificacion_ica\nmodelo · prediccion · registro_carga", shape=cylinder, fillcolor="#eef3fb", color="#2f5597", margin="0.25,0.12"];
+
+  subgraph cluster_modelo { label="Capa de modelo"; style="rounded,dashed"; color="#888888"; fontsize=12;
+    c4 [label="C4 Entrenamiento y comparación\nentrenar.py"];
+    c5 [label="C5 Modelo versionado\n(archivo .joblib)", shape=component];
+  }
+  subgraph cluster_app { label="Capa de presentación (prototipo Streamlit)"; style="rounded,dashed"; color="#888888"; fontsize=12;
+    serv [label="Lógica de la aplicación: servicio.py\n(validar, clasificar, consultar)", fillcolor="#eef3fb", color="#2f5597"];
+    c6 [label="C6 Formulario\ncon validación"];
+    c7 [label="C7 Clasificar\ny guardar"];
+    c8 [label="C8 Modelo\ny métricas"];
+    c9 [label="C9 Consulta\nhistórica"];
+    {rank=same; c6; c7; c8; c9}
+  }
+  user [label="Usuario", shape=oval, fillcolor="#f2f2f2"];
+
+  csv -> c1 -> c3 -> carga;
+  carga -> bd [label=" carga datos\n depurados"];
+  bd -> c4 [label=" lee datos\n etiquetados"];
+  c4 -> c5 [label=" guarda"];
+  bd -> serv [dir=both, label=" lee datos y\n guarda predicciones"];
+  c5 -> serv [label=" usa el\n modelo activo"];
+  serv -> c6 [dir=back]; serv -> c7 [dir=back]; serv -> c8 [dir=back]; serv -> c9 [dir=back];
+  c6 -> user [dir=back];
+  c7 -> user [style=invis];
+}
