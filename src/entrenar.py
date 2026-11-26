@@ -14,8 +14,10 @@ Qué hace:
  4. Compara: modelo base, árbol de decisión, Random Forest y regresión logística.
  5. Entrena un modelo de CONTROL con todas las variables (incluidas las del ICA).
  6. Guarda cada modelo en modelos/ y registra sus métricas en la tabla `modelo`.
- 7. Marca como activo el de mayor F1-macro (sin contar base ni control).
- 8. Escribe en docs/: comparación, matriz de confusión e importancia de variables.
+ 7. Marca como activo el de mayor F1-macro en la VALIDACIÓN CRUZADA del entrenamiento
+    (sin contar base ni control). El conjunto de prueba solo se usa para medir (DEC-18).
+ 8. Escribe en docs/: comparación, registro de experimentos, reporte por clase,
+    matriz de confusión e importancia de variables.
 """
 import json
 import sqlite3
@@ -33,7 +35,7 @@ from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (accuracy_score, classification_report, confusion_matrix,
                              f1_score, precision_score, recall_score)
-from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
+from sklearn.model_selection import GridSearchCV, TimeSeriesSplit, cross_val_score
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import FunctionTransformer, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
@@ -113,13 +115,29 @@ def metricas(y_real, y_pred):
     }
 
 
+CV = TimeSeriesSplit(n_splits=4)   # 4 bloques en orden cronológico dentro de 1990-2015
+
+
 def entrenar(nombre, modelo, rejilla, variables, X_tr, y_tr):
+    """Devuelve (pipeline ajustado, mejores parámetros, F1 de validación, filas del registro de experimentos)."""
     pipe = construir_pipeline(variables, modelo)
     if not rejilla:
-        return pipe.fit(X_tr[variables], y_tr), {}
-    busqueda = GridSearchCV(pipe, rejilla, scoring="f1_macro", cv=TimeSeriesSplit(n_splits=4), n_jobs=-1)
+        puntajes = cross_val_score(pipe, X_tr[variables], y_tr, scoring="f1_macro", cv=CV)
+        filas = [{"modelo": nombre, "parametros": "{}", "f1_cv_media": puntajes.mean(),
+                  "f1_cv_desv": puntajes.std(), **{f"f1_bloque_{i + 1}": v for i, v in enumerate(puntajes)},
+                  "elegido": 1}]
+        return pipe.fit(X_tr[variables], y_tr), {}, puntajes.mean(), filas
+    busqueda = GridSearchCV(pipe, rejilla, scoring="f1_macro", cv=CV, n_jobs=-1)
     busqueda.fit(X_tr[variables], y_tr)
-    return busqueda.best_estimator_, busqueda.best_params_
+    r = busqueda.cv_results_
+    filas = []
+    for k, params in enumerate(r["params"]):
+        filas.append({"modelo": nombre,
+                      "parametros": json.dumps({a.replace("modelo__", ""): b for a, b in params.items()}),
+                      "f1_cv_media": r["mean_test_score"][k], "f1_cv_desv": r["std_test_score"][k],
+                      **{f"f1_bloque_{i + 1}": r[f"split{i}_test_score"][k] for i in range(CV.n_splits)},
+                      "elegido": int(k == busqueda.best_index_)})
+    return busqueda.best_estimator_, busqueda.best_params_, busqueda.best_score_, filas
 
 
 def registrar(con, fila):
@@ -149,11 +167,12 @@ def main():
     experimentos = [(n, m, r, VARIABLES, 0) for n, (m, r) in MODELOS.items()]
     experimentos.append(("control_con_variables_ica", *MODELOS["random_forest"], VARIABLES + VARIABLES_ICA, 1))
 
-    resultados, ajustados = [], {}
+    resultados, ajustados, registro = [], {}, []
     with sqlite3.connect(BD) as con:
         con.execute("UPDATE modelo SET activo = 0")
         for nombre, modelo, rejilla, variables, es_control in experimentos:
-            pipe, params = entrenar(nombre, modelo, rejilla, variables, entrenamiento, y_tr)
+            pipe, params, f1_cv, filas = entrenar(nombre, modelo, rejilla, variables, entrenamiento, y_tr)
+            registro += filas
             m = metricas(y_te, pipe.predict(prueba[variables]))
             ruta = CARPETA_MODELOS / f"{nombre}_{version}.joblib"
             joblib.dump({"pipeline": pipe, "variables": variables, "clases": CLASES, "version": version}, ruta)
@@ -167,12 +186,13 @@ def main():
             })
             ajustados[nombre] = pipe
             resultados.append({"id_modelo": id_modelo, "modelo": nombre, "control": es_control,
+                               "f1_cv": round(f1_cv, 3),
                                **{k: round(v, 3) for k, v in m.items()}, "parametros": params})
-            print(f"{nombre:28s} F1-macro={m['f1_macro']:.3f}  Accuracy={m['accuracy']:.3f}")
+            print(f"{nombre:28s} F1 validación={f1_cv:.3f}  F1 prueba={m['f1_macro']:.3f}  Accuracy={m['accuracy']:.3f}")
 
         tabla = pd.DataFrame(resultados)
         candidatos = tabla[(tabla.control == 0) & (tabla.modelo != "base_mayoritaria")]
-        mejor = candidatos.sort_values("f1_macro", ascending=False).iloc[0]
+        mejor = candidatos.sort_values("f1_cv", ascending=False).iloc[0]   # se elige SIN mirar la prueba
         con.execute("UPDATE modelo SET activo = 1 WHERE id_modelo = ?", (int(mejor.id_modelo),))
         con.commit()
 
@@ -188,10 +208,14 @@ def main():
                    .sort_values("importancia", ascending=False).round(4))
 
     tabla.drop(columns="id_modelo").to_csv(CARPETA_DOCS / "comparacion_modelos.csv", index=False)
+    pd.DataFrame(registro).round(4).assign(version=version).to_csv(
+        CARPETA_DOCS / "registro_experimentos.csv", index=False)
+    pd.DataFrame(classification_report(y_te, y_pred, labels=CLASES, zero_division=0, output_dict=True)
+                 ).T.round(3).to_csv(CARPETA_DOCS / "reporte_por_clase.csv")
     matriz.to_csv(CARPETA_DOCS / "matriz_confusion.csv")
     importancia.to_csv(CARPETA_DOCS / "importancia_variables.csv", index=False)
 
-    print(f"\nMODELO ACTIVO: {mejor.modelo} (F1-macro {mejor.f1_macro:.3f})")
+    print(f"\nMODELO ACTIVO: {mejor.modelo} (F1 validación {mejor.f1_cv:.3f}, F1 prueba {mejor.f1_macro:.3f})")
     print("\nReporte por clase (conjunto de prueba):")
     print(classification_report(y_te, y_pred, labels=CLASES, zero_division=0))
     print("Matriz de confusión:")
@@ -199,6 +223,7 @@ def main():
     print("\nVariables más importantes:")
     print(importancia.head(6).to_string(index=False))
     print("\nArchivos: modelos/*.joblib, docs/comparacion_modelos.csv, "
+          "docs/registro_experimentos.csv, docs/reporte_por_clase.csv, "
           "docs/matriz_confusion.csv, docs/importancia_variables.csv")
 
 

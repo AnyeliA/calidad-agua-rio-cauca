@@ -22,6 +22,7 @@ Las decisiones que cambian algo del diseño aprobado se marcan como **Cambio fre
 | DEC-15 | 2026-11-17 | Despliegue | Definir 4 variables obligatorias en el formulario |
 | DEC-16 | 2026-11-17 | Transversal | No versionar la base de datos ni los modelos; fijar versiones de librerías |
 | DEC-17 | 2026-11-25 | Preparación de los datos | Excluir componentes redundantes, metales traza, fosfatos, nitrógeno total y caudal; dejar hierro, manganeso, sodio y potasio para TG II |
+| DEC-18 | 2026-11-25 | Modelado | Elegir el modelo activo con el F1-macro de la validación cruzada, no con la prueba |
 
 ---
 
@@ -110,3 +111,9 @@ Las decisiones que cambian algo del diseño aprobado se marcan como **Cambio fre
 - **Decisión:** no usar como entrada calcio, magnesio, dureza cálcica y magnésica ni bicarbonatos; tampoco los metales traza (cadmio, cromo, níquel, plomo, cobre, zinc), los fosfatos, el nitrógeno total ni el caudal. Hierro, manganeso, sodio y potasio quedan pendientes para Trabajo de Grado II.
 - **Razón:** los componentes de la dureza y la alcalinidad son redundantes con la dureza total y la alcalinidad (Spearman 0,67–0,96). En los metales traza, entre 55 % y 95 % de los valores están bajo el límite de detección y su correlación con el ICA es |ρ| ≤ 0,13. Los fosfatos y el nitrógeno total repiten la información del fósforo total y de las formas de nitrógeno (el nitrógeno total además tiene 29,4 % faltante). El caudal tiene 90,5 % faltante. Hierro, manganeso, sodio y potasio tienen correlación moderada (−0,37 a −0,47) y se probarán en la siguiente iteración.
 - **Evidencia:** docs/eda/correlaciones_ica.csv, datos/procesados/banderas_censura.csv; ejecución de src/exploratorio.py.
+
+### DEC-18. Selección del modelo activo con la validación cruzada
+- **Decisión:** el modelo activo es el de mayor F1-macro promedio en la validación cruzada temporal (4 bloques dentro de 1990–2015). El conjunto de prueba (2016–2025) solo se usa para informar el desempeño final.
+- **Razón:** antes se elegía con el F1 de la prueba; eso usa la prueba para tomar una decisión y vuelve optimista el resultado informado. Con la nueva regla, la prueba sigue siendo un conjunto que el proceso de selección nunca vio.
+- **Evidencia:** docs/registro_experimentos.csv (todas las combinaciones de hiperparámetros y su F1 por bloque) y docs/comparacion_modelos.csv (columna f1_cv).
+

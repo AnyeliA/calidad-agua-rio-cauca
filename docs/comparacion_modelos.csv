@@ -1,6 +1,6 @@
-modelo,control,accuracy,precision_macro,recall_macro,f1_macro,parametros
-base_mayoritaria,0,0.425,0.142,0.333,0.199,{}
-arbol_decision,0,0.503,0.492,0.546,0.447,"{'modelo__max_depth': 8, 'modelo__min_samples_leaf': 5}"
-random_forest,0,0.67,0.584,0.65,0.587,"{'modelo__max_depth': None, 'modelo__min_samples_leaf': 5, 'modelo__n_estimators': 200}"
-regresion_logistica,0,0.631,0.556,0.664,0.554,{'modelo__C': 10}
-control_con_variables_ica,1,0.887,0.881,0.807,0.833,"{'modelo__max_depth': None, 'modelo__min_samples_leaf': 5, 'modelo__n_estimators': 200}"
+modelo,control,f1_cv,accuracy,precision_macro,recall_macro,f1_macro,parametros
+base_mayoritaria,0,0.204,0.425,0.142,0.333,0.199,{}
+arbol_decision,0,0.525,0.503,0.492,0.546,0.447,"{'modelo__max_depth': 8, 'modelo__min_samples_leaf': 5}"
+random_forest,0,0.615,0.67,0.584,0.65,0.587,"{'modelo__max_depth': None, 'modelo__min_samples_leaf': 5, 'modelo__n_estimators': 200}"
+regresion_logistica,0,0.636,0.631,0.556,0.664,0.554,{'modelo__C': 10}
+control_con_variables_ica,1,0.843,0.887,0.881,0.807,0.833,"{'modelo__max_depth': None, 'modelo__min_samples_leaf': 5, 'modelo__n_estimators': 200}"
