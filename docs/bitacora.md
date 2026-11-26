@@ -67,5 +67,7 @@
 - Hecho: sección 4.4 (selección de técnicas, diseño experimental, registro de experimentos, evaluación,
   cumplimiento de objetivos y registro de aprobación) y capítulo 5 (Discusión) del documento.
 - Pendiente: repetir las pruebas manuales del prototipo con el nuevo modelo activo; visto bueno de la docente al modelo.
-- Siguiente paso: bloque D (análisis y diseño de software: actores, historias de usuario, casos de uso, riesgos, calidad).
+- Hecho: sección 4.2 Análisis y diseño (actores, diagrama de casos de uso, especificación de CU-01, 8 historias de
+  usuario, 9 reglas de negocio, módulos del sistema, seguridad y 8 riesgos) y evaluación de calidad ISO/IEC 25010 en 4.5.
+- Siguiente paso: bloque E (manual técnico, manual de usuario, plan de despliegue y evidencias de instalación).
 
