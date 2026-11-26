@@ -21,6 +21,7 @@ Las decisiones que cambian algo del diseño aprobado se marcan como **Cambio fre
 | DEC-14 | 2026-11-17 | Despliegue | Construir el prototipo con Streamlit y separar la lógica |
 | DEC-15 | 2026-11-17 | Despliegue | Definir 4 variables obligatorias en el formulario |
 | DEC-16 | 2026-11-17 | Transversal | No versionar la base de datos ni los modelos; fijar versiones de librerías |
+| DEC-17 | 2026-11-25 | Preparación de los datos | Excluir componentes redundantes, metales traza, fosfatos, nitrógeno total y caudal; dejar hierro, manganeso, sodio y potasio para TG II |
 
 ---
 
@@ -104,3 +105,8 @@ Las decisiones que cambian algo del diseño aprobado se marcan como **Cambio fre
 ### DEC-16. No versionar la base ni los modelos; fijar versiones de librerías
 - **Razón:** la base y los `.joblib` se regeneran con los scripts y cambian en cada ejecución; versionarlos llenaría el historial. Las versiones exactas en `requirements.txt` (Python 3.10.11, pandas 2.3.3, scikit-learn 1.7.2, Streamlit 1.65.0) permiten reproducir las métricas.
 - **Evidencia:** `.gitignore`, `requirements.txt`.
+
+### DEC-17. Selección de las demás variables del archivo
+- **Decisión:** no usar como entrada calcio, magnesio, dureza cálcica y magnésica ni bicarbonatos; tampoco los metales traza (cadmio, cromo, níquel, plomo, cobre, zinc), los fosfatos, el nitrógeno total ni el caudal. Hierro, manganeso, sodio y potasio quedan pendientes para Trabajo de Grado II.
+- **Razón:** los componentes de la dureza y la alcalinidad son redundantes con la dureza total y la alcalinidad (Spearman 0,67–0,96). En los metales traza, entre 55 % y 95 % de los valores están bajo el límite de detección y su correlación con el ICA es |ρ| ≤ 0,13. Los fosfatos y el nitrógeno total repiten la información del fósforo total y de las formas de nitrógeno (el nitrógeno total además tiene 29,4 % faltante). El caudal tiene 90,5 % faltante. Hierro, manganeso, sodio y potasio tienen correlación moderada (−0,37 a −0,47) y se probarán en la siguiente iteración.
+- **Evidencia:** docs/eda/correlaciones_ica.csv, datos/procesados/banderas_censura.csv; ejecución de src/exploratorio.py.
