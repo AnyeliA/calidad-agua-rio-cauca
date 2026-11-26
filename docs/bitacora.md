@@ -58,3 +58,14 @@
   calidad, selección y transformación de los datos).
 - Siguiente paso: bloque C, fases 4 y 5 (selección de técnicas, diseño experimental, registro de experimentos,
   evaluación, cumplimiento de objetivos y aprobación del modelo).
+
+## 2026-11-26
+- Hecho: corrección del método de selección (DEC-18): el modelo activo se elige con la validación cruzada
+  temporal y no con el conjunto de prueba. Se agregó el registro de experimentos (18 configuraciones).
+- Resultado: modelo activo regresión logística (F1 validación 0,636; F1 prueba 0,554). Random Forest:
+  0,615 y 0,587. Diferencia menor que la variación entre bloques: desempeño equivalente.
+- Hecho: sección 4.4 (selección de técnicas, diseño experimental, registro de experimentos, evaluación,
+  cumplimiento de objetivos y registro de aprobación) y capítulo 5 (Discusión) del documento.
+- Pendiente: repetir las pruebas manuales del prototipo con el nuevo modelo activo; visto bueno de la docente al modelo.
+- Siguiente paso: bloque D (análisis y diseño de software: actores, historias de usuario, casos de uso, riesgos, calidad).
+
