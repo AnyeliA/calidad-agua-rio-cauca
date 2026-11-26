@@ -24,6 +24,27 @@
 - Variables más importantes: alcalinidad, turbiedad, fósforo total, sulfatos.
 - Decisión: fijar versiones de librerías en requirements.txt para reproducibilidad.
 
+## 2026-11-18
+- Hecho: prototipo Streamlit con clasificación de una muestra, métricas del modelo e histórico (RF-04 a RF-07).
+- Hecho: pruebas del prototipo con muestreos reales de la CVC y fichas con capturas (docs/Pruebas_prototipo_calidad_agua.docx).
+- Hecho: 27 pruebas automáticas con pytest (limpieza, ICA, base de datos, modelo y prototipo): 27 passed.
+- Hecho: diccionario de datos y permisos de la base (docs/diccionario_datos.md).
+- Hecho: registro de decisiones técnicas DEC-01 a DEC-16 (docs/decisiones.md).
+- Siguiente paso: diseño del sistema.
+
+## 2026-11-21
+- Hecho: paquete de diseño (OE2) en docs/diseno: diagrama de arquitectura en tres capas, modelo entidad-relación
+  de las 6 tablas y diagrama de secuencia de la clasificación de una muestra.
+- Siguiente paso: definir la metodología con la docente.
+
+## 2026-11-23
+- Hecho: la docente Maribel Liliana Díaz Yunda aprobó CRISP-DM como metodología, con la condición de cumplir todos
+  los entregables de sus seis fases y los componentes de ingeniería de software (evidencia en docs/evidencias).
+- Hecho: en el documento de trabajo de grado se completaron referencias, capítulo 3 (Método, con la aplicación de
+  CRISP-DM), alcance, estudio de viabilidad, plan de trabajo, criterios de éxito y capítulo 4 (Resultados).
+- Hecho: tablero de Trello y hoja de seguimiento de entregables por fase; entrega estimada: primera semana de diciembre.
+- Siguiente paso: informe exploratorio y de calidad de los datos (fases 2 y 3).
+
 ## 2026-11-25
 - Hecho: análisis exploratorio y de calidad de los datos (src/exploratorio.py, docs/eda/), fases 2 y 3 de CRISP-DM.
 - Resultado: el ICA baja a lo largo del río (mediana 0,81–0,86 aguas arriba, 0,58–0,71 aguas abajo de Cali);
@@ -32,3 +53,8 @@
 - Decisión: DEC-17, selección de las demás variables del archivo. Se versiona datos_con_ica.csv como dataset preparado.
 - Organización del repositorio: .gitignore para temporales de Python; se eliminan copias sobrantes.
 - Siguiente paso: bloque C (modelado y evaluación).
+- Hecho: evidencia en PDF de la aprobación de la metodología (docs/evidencias).
+- En curso: sección 4.1 del documento con los entregables de las fases 2 y 3 (inventario de fuentes, exploración,
+  calidad, selección y transformación de los datos).
+- Siguiente paso: bloque C, fases 4 y 5 (selección de técnicas, diseño experimental, registro de experimentos,
+  evaluación, cumplimiento de objetivos y aprobación del modelo).
