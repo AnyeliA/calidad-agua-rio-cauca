@@ -1,4 +1,12 @@
+# Se regeneran con los scripts (DEC-16)
 bd/calidad_agua.db
-datos/procesados/
 modelos/*.joblib
+datos/procesados/*
+# El dataset preparado sí se versiona (entregable de la fase 3 de CRISP-DM)
+!datos/procesados/datos_con_ica.csv
+
+# Archivos temporales de Python, pytest y Office
+__pycache__/
+*.pyc
+.pytest_cache/
 ~$*

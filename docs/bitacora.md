@@ -23,3 +23,12 @@
   con datos erróneos). Control con variables ICA: 0,833. Modelo base: 0,199.
 - Variables más importantes: alcalinidad, turbiedad, fósforo total, sulfatos.
 - Decisión: fijar versiones de librerías en requirements.txt para reproducibilidad.
+
+## 2026-11-25
+- Hecho: análisis exploratorio y de calidad de los datos (src/exploratorio.py, docs/eda/), fases 2 y 3 de CRISP-DM.
+- Resultado: el ICA baja a lo largo del río (mediana 0,81–0,86 aguas arriba, 0,58–0,71 aguas abajo de Cali);
+  la clase Malo bajó de 15 % (1990–1994) a menos de 5 % (2020–2025); alcalinidad, dureza, fósforo y DBO5
+  son las variables más correlacionadas con el ICA (−0,51 a −0,57).
+- Decisión: DEC-17, selección de las demás variables del archivo. Se versiona datos_con_ica.csv como dataset preparado.
+- Organización del repositorio: .gitignore para temporales de Python; se eliminan copias sobrantes.
+- Siguiente paso: bloque C (modelado y evaluación).
